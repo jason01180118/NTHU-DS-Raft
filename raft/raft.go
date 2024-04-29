@@ -136,7 +136,7 @@ func (r *Raft) requestVote(req *pb.RequestVoteRequest) (*pb.RequestVoteResponse,
 		r.logger.Info("increase term since receive a newer one", zap.Uint64("term", r.currentTerm))
 	}
 
-	if r.votedFor != 0 && r.votedFor != req.CandidateId {
+	if r.votedFor != 0 && r.votedFor != req.GetCandidateId() {
 		// TODO: (A.7) - if votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
 		// Hint: (fix the condition) if already vote for another candidate, reply false
 
@@ -333,8 +333,8 @@ func (r *Raft) handleVoteResult(vote *voteResult, grantedVotes *int, votesNeeded
 	// TODO: (A.12) - if RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
 	// Hint: use `toFollower` to convert to follower
 	// Log: r.logger.Info("receive new term on RequestVote response, fallback to follower", zap.Uint32("peer", vote.peerId))
-	if vote.Term > r.currentTerm {
-		r.toFollower(vote.Term)
+	if vote.GetTerm() > r.currentTerm {
+		r.toFollower(vote.GetTerm())
 		r.logger.Info("receive new term on RequestVote response, fallback to follower", zap.Uint32("peer", vote.peerId))
 	}
 
@@ -439,6 +439,7 @@ func (r *Raft) handleAppendEntriesResult(result *appendEntriesResult) {
 	if result.GetTerm() > r.currentTerm {
 		r.toFollower(result.GetTerm())
 		r.logger.Info("receive new term on AppendEntries response, fallback to follower", zap.Uint32("peer", result.peerId))
+
 	}
 
 	entries := result.req.GetEntries()
